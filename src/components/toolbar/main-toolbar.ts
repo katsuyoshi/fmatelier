@@ -83,7 +83,7 @@ export class MainToolbar extends LitElement {
 
   render() {
     return html`
-      <span class="title">DXEdit</span>
+      <span class="title">FMAtelier</span>
       <span class="filename">
         ${this.fileName ?? 'New Bank'}${this.dirty ? html`<span class="dirty"> *</span>` : ''}
       </span>
