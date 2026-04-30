@@ -2,6 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import type { DX7Operator } from '../../model/types.ts';
 import { KBD_CURVE_NAMES } from '../../model/types.ts';
+import { bankStore } from '../../store/bank-store.ts';
 import '../controls/dx-slider.ts';
 import '../controls/dx-switch.ts';
 import '../controls/dx-select.ts';
@@ -24,11 +25,41 @@ export class OperatorPanel extends LitElement {
       display: block;
     }
 
+    .op-header {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-sm);
+    }
+
     h3 {
       font-family: var(--font-mono);
       font-size: 0.85rem;
       color: var(--color-carrier);
-      margin-bottom: var(--spacing-sm);
+      margin: 0;
+    }
+
+    .op-actions {
+      display: flex;
+      gap: 2px;
+      margin-left: auto;
+    }
+
+    .op-actions button {
+      padding: 2px 8px;
+      background: var(--color-bg-control);
+      color: var(--color-text-muted);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      cursor: pointer;
+    }
+
+    .op-actions button:hover {
+      background: var(--color-bg-card);
+      border-color: var(--color-accent);
+      color: var(--color-text);
     }
 
     .section {
@@ -65,7 +96,13 @@ export class OperatorPanel extends LitElement {
     const prefix = `operators.${this.opIndex}`;
 
     return html`
-      <h3>OP${this.opIndex + 1}</h3>
+      <div class="op-header">
+        <h3>OP${this.opIndex + 1}</h3>
+        <div class="op-actions">
+          <button @click=${this._copyOp}>Copy</button>
+          <button @click=${this._pasteOp}>Paste</button>
+        </div>
+      </div>
 
       <div class="section">
         <div class="section-title">Envelope Generator</div>
@@ -125,5 +162,13 @@ export class OperatorPanel extends LitElement {
         </div>
       </div>
     `;
+  }
+
+  private _copyOp() {
+    bankStore.copyCurrentOperator();
+  }
+
+  private _pasteOp() {
+    bankStore.pasteOperator();
   }
 }

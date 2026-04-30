@@ -1,4 +1,4 @@
-import type { DX7Bank, DX7Voice } from '../model/types.ts';
+import type { DX7Bank, DX7Voice, DX7Operator } from '../model/types.ts';
 import { createDefaultBank, createDefaultVoice } from '../model/defaults.ts';
 
 export interface BankState {
@@ -19,6 +19,7 @@ class BankStore {
   private redoStack: BankState[] = [];
   private listeners: Set<StateListener> = new Set();
   private voiceClipboard: DX7Voice | null = null;
+  private opClipboard: DX7Operator | null = null;
 
   constructor() {
     this.state = {
@@ -131,6 +132,28 @@ class BankStore {
 
   get hasClipboard(): boolean {
     return this.voiceClipboard !== null;
+  }
+
+  /** Copy current operator to clipboard */
+  copyCurrentOperator(): void {
+    const voice = this.getCurrentVoice();
+    this.opClipboard = structuredClone(voice.operators[this.state.selectedOperator]!);
+  }
+
+  /** Paste clipboard operator to current operator slot */
+  pasteOperator(): void {
+    if (!this.opClipboard) return;
+    this.pushUndo();
+    const idx = this.state.selectedVoiceIndex;
+    const voice = structuredClone(this.state.bank.voices[idx]!);
+    voice.operators[this.state.selectedOperator] = structuredClone(this.opClipboard);
+    this.state.bank.voices[idx] = voice;
+    this.state = { ...this.state, dirty: true };
+    this.notify();
+  }
+
+  get hasOpClipboard(): boolean {
+    return this.opClipboard !== null;
   }
 
   /** Initialize current voice to default */
