@@ -5,6 +5,7 @@ import { LFO_WAVE_NAMES } from '../../model/types.ts';
 import '../controls/dx-slider.ts';
 import '../controls/dx-switch.ts';
 import '../controls/dx-select.ts';
+import './algorithm-selector.ts';
 
 @customElement('dx-common-panel')
 export class CommonPanel extends LitElement {
@@ -52,6 +53,13 @@ export class CommonPanel extends LitElement {
     if (!this.common) return html``;
 
     return html`
+      <div class="section">
+        <div class="section-title">Algorithm</div>
+        <dx-algorithm-selector
+          .algorithm=${this.common.algorithm}
+        ></dx-algorithm-selector>
+      </div>
+
       <div class="section">
         <div class="section-title">Global</div>
         <div class="grid-2">

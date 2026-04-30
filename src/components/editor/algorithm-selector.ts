@@ -73,7 +73,7 @@ export class AlgorithmSelector extends LitElement {
 
     .current-diagram svg {
       width: 100%;
-      height: 50px;
+      height: 200px;
     }
 
     .arrow {
@@ -82,41 +82,50 @@ export class AlgorithmSelector extends LitElement {
       flex-shrink: 0;
     }
 
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 99;
+      background: rgba(0, 0, 0, 0.5);
+    }
+
     .dropdown {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
+      position: fixed;
+      inset: var(--spacing-lg);
       z-index: 100;
       background: var(--color-bg-panel);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
-      padding: var(--spacing-sm);
-      margin-top: 2px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      padding: var(--spacing-md);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
     }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(8, 1fr);
-      gap: 3px;
+      grid-template-rows: repeat(4, 1fr);
+      gap: 6px;
+      flex: 1;
+      min-height: 0;
     }
 
     @media (max-width: 600px) {
       .grid {
         grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(8, 1fr);
       }
     }
 
     .cell {
-      aspect-ratio: 1.3;
       background: var(--color-bg-control);
       border: 1.5px solid var(--color-border);
       border-radius: var(--radius-sm);
       cursor: pointer;
       position: relative;
-      overflow: hidden;
-      padding: 2px;
+      padding: 6px;
+      min-height: 0;
     }
 
     .cell-num {
@@ -180,7 +189,7 @@ export class AlgorithmSelector extends LitElement {
     .cur-label {
       fill: var(--color-text);
       font-family: var(--font-mono);
-      font-size: 10px;
+      font-size: 12px;
       text-anchor: middle;
       dominant-baseline: central;
     }
@@ -192,10 +201,9 @@ export class AlgorithmSelector extends LitElement {
     }
 
     .cur-fb {
-      stroke: var(--color-feedback);
+      stroke: var(--color-text-muted);
       stroke-width: 1;
       fill: none;
-      stroke-dasharray: 3 2;
     }
 
     /* Mini diagram SVG styles */
@@ -226,10 +234,9 @@ export class AlgorithmSelector extends LitElement {
     }
 
     .mini-fb {
-      stroke: var(--color-feedback);
+      stroke: var(--color-text-muted);
       stroke-width: 0.6;
       fill: none;
-      stroke-dasharray: 2 1;
     }
 
     .mini-label {
@@ -252,6 +259,7 @@ export class AlgorithmSelector extends LitElement {
         <span class="arrow">${this._open ? '\u25B2' : '\u25BC'}</span>
       </div>
       ${this._open ? html`
+        <div class="overlay" @click=${(e: Event) => { e.stopPropagation(); this._open = false; }}></div>
         <div class="dropdown">
           <div class="grid">
             ${ALGORITHMS.map((a, i) => html`
@@ -270,11 +278,11 @@ export class AlgorithmSelector extends LitElement {
   }
 
   private _renderCurrent(algo: AlgorithmDef): TemplateResult {
-    const BOX_W = 24;
-    const BOX_H = 18;
-    const GAP_X = 8;
-    const GAP_Y = 6;
-    const PAD = 10;
+    const BOX_W = 30;
+    const BOX_H = 22;
+    const GAP_X = 10;
+    const GAP_Y = 8;
+    const PAD = 12;
 
     const opPositions = new Map<number, { x: number; y: number }>();
     const maxRows = Math.max(...algo.layout.map((col) => col.length));
@@ -285,7 +293,7 @@ export class AlgorithmSelector extends LitElement {
       const startY = PAD + (maxRows * (BOX_H + GAP_Y) - GAP_Y) - colHeight;
       for (let row = 0; row < column.length; row++) {
         const opNum = column[row]!;
-        if (!opPositions.has(opNum)) {
+        if (opNum > 0 && !opPositions.has(opNum)) {
           opPositions.set(opNum, { x: colX, y: startY + row * (BOX_H + GAP_Y) });
         }
       }
@@ -293,8 +301,10 @@ export class AlgorithmSelector extends LitElement {
     }
 
     const viewW = colX + PAD - GAP_X;
-    const viewH = PAD * 2 + maxRows * (BOX_H + GAP_Y) - GAP_Y;
     const carrierSet = new Set(algo.carriers);
+    const BUS_GAP = 4;
+    const hasBus = algo.carriers.length > 1;
+    const viewH = PAD * 2 + maxRows * (BOX_H + GAP_Y) - GAP_Y + (hasBus ? BUS_GAP + 1 : 0);
 
     const connections = algo.connections.map((conn) => {
       const fromPos = opPositions.get(conn.from);
@@ -312,18 +322,37 @@ export class AlgorithmSelector extends LitElement {
     });
 
     let fbSvg = svg``;
-    if (algo.feedback) {
-      const fbPos = opPositions.get(algo.feedback);
-      if (fbPos) {
-        const cx = fbPos.x + BOX_W + 4;
-        const cy = fbPos.y + BOX_H / 2;
-        fbSvg = svg`<path class="cur-fb" d="M${fbPos.x + BOX_W},${cy} C${cx + 8},${cy - 12} ${cx + 8},${cy + 12} ${fbPos.x + BOX_W},${cy}" />`;
+    if (algo.feedbackFrom) {
+      const OFF = 6;
+      const fromPos = opPositions.get(algo.feedbackFrom);
+      const toPos = opPositions.get(algo.feedbackTo);
+      if (fromPos && toPos) {
+        if (algo.feedbackFrom === algo.feedbackTo) {
+          fbSvg = svg`<path class="cur-fb" d="M${fromPos.x + BOX_W},${fromPos.y + BOX_H / 2} h${OFF} v-${BOX_H / 2 + OFF} h-${BOX_W / 2 + OFF} v${OFF}" />`;
+        } else {
+          fbSvg = svg`<path class="cur-fb" d="M${fromPos.x + BOX_W},${fromPos.y + BOX_H / 2} h${OFF} V${toPos.y + BOX_H / 2} H${toPos.x + BOX_W}" />`;
+        }
       }
+    }
+
+    // Carrier bus line at the bottom
+    let busSvg = svg``;
+    if (hasBus) {
+      const carrierPositions = algo.carriers
+        .map((c) => opPositions.get(c))
+        .filter((p): p is { x: number; y: number } => !!p);
+      const busY = Math.max(...carrierPositions.map((p) => p.y)) + BOX_H + BUS_GAP;
+      const xs = carrierPositions.map((p) => p.x + BOX_W / 2).sort((a, b) => a - b);
+      const stubs = carrierPositions.map((p) => {
+        const cx = p.x + BOX_W / 2;
+        return svg`<line class="cur-conn" x1="${cx}" y1="${p.y + BOX_H}" x2="${cx}" y2="${busY}" />`;
+      });
+      busSvg = svg`${stubs}<line class="cur-conn" x1="${xs[0]}" y1="${busY}" x2="${xs[xs.length - 1]}" y2="${busY}" />`;
     }
 
     const boxes = [...opPositions.entries()].map(([opNum, pos]) => {
       const isCarrier = carrierSet.has(opNum);
-      const isFb = opNum === algo.feedback;
+      const isFb = opNum === algo.feedbackTo;
       return svg`
         <rect class="cur-box ${isCarrier ? 'carrier' : ''} ${isFb ? 'feedback' : ''}"
               x="${pos.x}" y="${pos.y}"
@@ -336,6 +365,7 @@ export class AlgorithmSelector extends LitElement {
       <svg viewBox="0 0 ${viewW} ${viewH}" preserveAspectRatio="xMidYMax meet">
         ${connections}
         ${fbSvg}
+        ${busSvg}
         ${boxes}
       </svg>
     `;
@@ -357,7 +387,7 @@ export class AlgorithmSelector extends LitElement {
       const startY = PAD + (maxRows * (BOX_H + GAP_Y) - GAP_Y) - colHeight;
       for (let row = 0; row < column.length; row++) {
         const opNum = column[row]!;
-        if (!opPositions.has(opNum)) {
+        if (opNum > 0 && !opPositions.has(opNum)) {
           opPositions.set(opNum, { x: colX, y: startY + row * (BOX_H + GAP_Y) });
         }
       }
@@ -365,8 +395,10 @@ export class AlgorithmSelector extends LitElement {
     }
 
     const viewW = colX + PAD - GAP_X;
-    const viewH = PAD * 2 + maxRows * (BOX_H + GAP_Y) - GAP_Y;
     const carrierSet = new Set(algo.carriers);
+    const BUS_GAP = 2;
+    const hasBus = algo.carriers.length > 1;
+    const viewH = PAD * 2 + maxRows * (BOX_H + GAP_Y) - GAP_Y + (hasBus ? BUS_GAP + 1 : 0);
 
     const connections = algo.connections.map((conn) => {
       const fromPos = opPositions.get(conn.from);
@@ -384,18 +416,37 @@ export class AlgorithmSelector extends LitElement {
     });
 
     let fbSvg = svg``;
-    if (algo.feedback) {
-      const fbPos = opPositions.get(algo.feedback);
-      if (fbPos) {
-        const cx = fbPos.x + BOX_W + 2;
-        const cy = fbPos.y + BOX_H / 2;
-        fbSvg = svg`<path class="mini-fb" d="M${fbPos.x + BOX_W},${cy} C${cx + 4},${cy - 6} ${cx + 4},${cy + 6} ${fbPos.x + BOX_W},${cy}" />`;
+    if (algo.feedbackFrom) {
+      const OFF = 3;
+      const fromPos = opPositions.get(algo.feedbackFrom);
+      const toPos = opPositions.get(algo.feedbackTo);
+      if (fromPos && toPos) {
+        if (algo.feedbackFrom === algo.feedbackTo) {
+          fbSvg = svg`<path class="mini-fb" d="M${fromPos.x + BOX_W},${fromPos.y + BOX_H / 2} h${OFF} v-${BOX_H / 2 + OFF} h-${BOX_W / 2 + OFF} v${OFF}" />`;
+        } else {
+          fbSvg = svg`<path class="mini-fb" d="M${fromPos.x + BOX_W},${fromPos.y + BOX_H / 2} h${OFF} V${toPos.y + BOX_H / 2} H${toPos.x + BOX_W}" />`;
+        }
       }
+    }
+
+    // Carrier bus line
+    let busSvg = svg``;
+    if (hasBus) {
+      const carrierPositions = algo.carriers
+        .map((c) => opPositions.get(c))
+        .filter((p): p is { x: number; y: number } => !!p);
+      const busY = Math.max(...carrierPositions.map((p) => p.y)) + BOX_H + BUS_GAP;
+      const xs = carrierPositions.map((p) => p.x + BOX_W / 2).sort((a, b) => a - b);
+      const stubs = carrierPositions.map((p) => {
+        const cx = p.x + BOX_W / 2;
+        return svg`<line class="mini-conn" x1="${cx}" y1="${p.y + BOX_H}" x2="${cx}" y2="${busY}" />`;
+      });
+      busSvg = svg`${stubs}<line class="mini-conn" x1="${xs[0]}" y1="${busY}" x2="${xs[xs.length - 1]}" y2="${busY}" />`;
     }
 
     const boxes = [...opPositions.entries()].map(([opNum, pos]) => {
       const isCarrier = carrierSet.has(opNum);
-      const isFb = opNum === algo.feedback;
+      const isFb = opNum === algo.feedbackTo;
       return svg`
         <rect class="mini-box ${isCarrier ? 'carrier' : ''} ${isFb ? 'feedback' : ''}"
               x="${pos.x}" y="${pos.y}"
@@ -405,9 +456,10 @@ export class AlgorithmSelector extends LitElement {
     });
 
     return html`
-      <svg viewBox="0 0 ${viewW} ${viewH}" preserveAspectRatio="xMidYMax meet">
+      <svg viewBox="0 0 ${viewW} ${viewH}" preserveAspectRatio="xMidYMid meet">
         ${connections}
         ${fbSvg}
+        ${busSvg}
         ${boxes}
       </svg>
     `;

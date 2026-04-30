@@ -55,10 +55,9 @@ export class AlgorithmDiagram extends LitElement {
     }
 
     .fb-loop {
-      stroke: var(--color-feedback);
+      stroke: var(--color-text-muted);
       stroke-width: 1;
       fill: none;
-      stroke-dasharray: 3 2;
     }
 
     .algo-label {
@@ -91,7 +90,7 @@ export class AlgorithmDiagram extends LitElement {
       for (let row = 0; row < column.length; row++) {
         const opNum = column[row]!;
         // Skip if already positioned (shared operator across columns)
-        if (!opPositions.has(opNum)) {
+        if (opNum > 0 && !opPositions.has(opNum)) {
           opPositions.set(opNum, {
             x: colX,
             y: startY + row * (BOX_H + GAP_Y),
@@ -102,9 +101,10 @@ export class AlgorithmDiagram extends LitElement {
     }
 
     const viewW = colX + PAD - GAP_X;
-    const viewH = PAD * 2 + maxRows * (BOX_H + GAP_Y) - GAP_Y;
-
     const carrierSet = new Set(algo.carriers);
+    const BUS_GAP = 3;
+    const hasBus = algo.carriers.length > 1;
+    const viewH = PAD * 2 + maxRows * (BOX_H + GAP_Y) - GAP_Y + (hasBus ? BUS_GAP + 1 : 0);
 
     // Render connections
     const connectionLines = algo.connections.map((conn) => {
@@ -117,7 +117,6 @@ export class AlgorithmDiagram extends LitElement {
       const x2 = toPos.x + BOX_W / 2;
       const y2 = toPos.y;
 
-      // If same column, straight line; otherwise curved
       if (Math.abs(x1 - x2) < 2) {
         return svg`<line class="connection" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" />`;
       }
@@ -127,13 +126,32 @@ export class AlgorithmDiagram extends LitElement {
 
     // Render feedback loop
     let fbSvg = svg``;
-    if (algo.feedback) {
-      const fbPos = opPositions.get(algo.feedback);
-      if (fbPos) {
-        const cx = fbPos.x + BOX_W + 4;
-        const cy = fbPos.y + BOX_H / 2;
-        fbSvg = svg`<path class="fb-loop" d="M${fbPos.x + BOX_W},${cy} C${cx + 8},${cy - 12} ${cx + 8},${cy + 12} ${fbPos.x + BOX_W},${cy}" />`;
+    if (algo.feedbackFrom) {
+      const OFF = 5;
+      const fromPos = opPositions.get(algo.feedbackFrom);
+      const toPos = opPositions.get(algo.feedbackTo);
+      if (fromPos && toPos) {
+        if (algo.feedbackFrom === algo.feedbackTo) {
+          fbSvg = svg`<path class="fb-loop" d="M${fromPos.x + BOX_W},${fromPos.y + BOX_H / 2} h${OFF} v-${BOX_H / 2 + OFF} h-${BOX_W / 2 + OFF} v${OFF}" />`;
+        } else {
+          fbSvg = svg`<path class="fb-loop" d="M${fromPos.x + BOX_W},${fromPos.y + BOX_H / 2} h${OFF} V${toPos.y + BOX_H / 2} H${toPos.x + BOX_W}" />`;
+        }
       }
+    }
+
+    // Carrier bus line
+    let busSvg = svg``;
+    if (hasBus) {
+      const carrierPositions = algo.carriers
+        .map((c) => opPositions.get(c))
+        .filter((p): p is { x: number; y: number } => !!p);
+      const busY = Math.max(...carrierPositions.map((p) => p.y)) + BOX_H + BUS_GAP;
+      const xs = carrierPositions.map((p) => p.x + BOX_W / 2).sort((a, b) => a - b);
+      const stubs = carrierPositions.map((p) => {
+        const cx = p.x + BOX_W / 2;
+        return svg`<line class="connection" x1="${cx}" y1="${p.y + BOX_H}" x2="${cx}" y2="${busY}" />`;
+      });
+      busSvg = svg`${stubs}<line class="connection" x1="${xs[0]}" y1="${busY}" x2="${xs[xs.length - 1]}" y2="${busY}" />`;
     }
 
     // Render operator boxes
@@ -152,6 +170,7 @@ export class AlgorithmDiagram extends LitElement {
         <text class="algo-label" x="${PAD}" y="${viewH - 2}">ALG ${this.algorithm + 1}</text>
         ${connectionLines}
         ${fbSvg}
+        ${busSvg}
         ${opBoxes}
       </svg>
     `;

@@ -5,7 +5,6 @@ import type { DX7Voice } from '../../model/types.ts';
 import './operator-strip.ts';
 import './operator-panel.ts';
 import './common-panel.ts';
-import './algorithm-selector.ts';
 
 @customElement('dx-voice-editor')
 export class VoiceEditor extends LitElement {
@@ -105,11 +104,6 @@ export class VoiceEditor extends LitElement {
           @input=${this._onNameInput}
         />
       </div>
-
-      <dx-algorithm-selector
-        .algorithm=${this.voice.common.algorithm}
-        @param-change=${this._onParamChange}
-      ></dx-algorithm-selector>
 
       <dx-operator-strip
         .operators=${this.voice.operators}
