@@ -6,6 +6,7 @@ import '../controls/dx-slider.ts';
 import '../controls/dx-switch.ts';
 import '../controls/dx-select.ts';
 import '../visualizations/envelope-graph.ts';
+import '../visualizations/kbd-scaling-graph.ts';
 
 @customElement('dx-operator-panel')
 export class OperatorPanel extends LitElement {
@@ -99,6 +100,13 @@ export class OperatorPanel extends LitElement {
 
       <div class="section">
         <div class="section-title">Keyboard Level Scaling</div>
+        <dx-kbd-scaling-graph
+          .breakpoint=${this.op.kbdLevelScalingBreakpoint}
+          .leftDepth=${this.op.kbdLevelScalingLeftDepth}
+          .rightDepth=${this.op.kbdLevelScalingRightDepth}
+          .leftCurve=${this.op.kbdLevelScalingLeftCurve}
+          .rightCurve=${this.op.kbdLevelScalingRightCurve}
+        ></dx-kbd-scaling-graph>
         <div class="grid-2">
           <dx-slider label="BP" .value=${this.op.kbdLevelScalingBreakpoint} path="${prefix}.kbdLevelScalingBreakpoint" min="0" max="99"></dx-slider>
           <dx-slider label="L Depth" .value=${this.op.kbdLevelScalingLeftDepth} path="${prefix}.kbdLevelScalingLeftDepth" min="0" max="99"></dx-slider>
