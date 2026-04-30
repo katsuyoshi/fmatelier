@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { bankStore } from '../../store/bank-store.ts';
-import { parseSyxFile } from '../../sysex/bulk-dump.ts';
+import { parseSyxFile, generateSyxFile } from '../../sysex/bulk-dump.ts';
 import '../toolbar/main-toolbar.ts';
 import '../bank/voice-list.ts';
 import '../editor/voice-editor.ts';
@@ -109,13 +109,47 @@ export class DxApp extends LitElement {
   };
 
   private _onKeyDown = (e: KeyboardEvent) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
-      e.preventDefault();
-      if (e.shiftKey) {
-        bankStore.redo();
-      } else {
-        bankStore.undo();
-      }
+    const mod = e.metaKey || e.ctrlKey;
+    if (!mod) return;
+
+    switch (e.key) {
+      case 'z':
+        e.preventDefault();
+        if (e.shiftKey) bankStore.redo();
+        else bankStore.undo();
+        break;
+      case 's':
+        e.preventDefault();
+        this._saveFile();
+        break;
+      case 'c':
+        // Don't intercept if user is in a text input
+        if (this._isTextInput(e)) return;
+        e.preventDefault();
+        bankStore.copyCurrentVoice();
+        break;
+      case 'v':
+        if (this._isTextInput(e)) return;
+        e.preventDefault();
+        bankStore.pasteVoice();
+        break;
     }
   };
+
+  private _isTextInput(e: KeyboardEvent): boolean {
+    const tag = (e.target as HTMLElement)?.tagName;
+    return tag === 'INPUT' || tag === 'TEXTAREA';
+  }
+
+  private _saveFile() {
+    const state = bankStore.getState();
+    const data = generateSyxFile(state.bank);
+    const blob = new Blob([data.buffer as ArrayBuffer], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = state.fileName ?? 'bank.syx';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 }

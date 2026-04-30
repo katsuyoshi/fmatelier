@@ -18,6 +18,7 @@ class BankStore {
   private undoStack: BankState[] = [];
   private redoStack: BankState[] = [];
   private listeners: Set<StateListener> = new Set();
+  private voiceClipboard: DX7Voice | null = null;
 
   constructor() {
     this.state = {
@@ -112,6 +113,24 @@ class BankStore {
     };
     this.redoStack = [];
     this.notify();
+  }
+
+  /** Copy current voice to clipboard */
+  copyCurrentVoice(): void {
+    this.voiceClipboard = structuredClone(this.getCurrentVoice());
+  }
+
+  /** Paste clipboard voice to current slot */
+  pasteVoice(): void {
+    if (!this.voiceClipboard) return;
+    this.pushUndo();
+    this.state.bank.voices[this.state.selectedVoiceIndex] = structuredClone(this.voiceClipboard);
+    this.state = { ...this.state, dirty: true };
+    this.notify();
+  }
+
+  get hasClipboard(): boolean {
+    return this.voiceClipboard !== null;
   }
 
   /** Initialize current voice to default */
