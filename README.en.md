@@ -1,5 +1,7 @@
 # FMAtelier
 
+<img src="docs/images/screenshot.png" alt="FMAtelier screenshot" width="800">
+
 A browser-based voice editor for the YAMAHA DX7 synthesizer with Web MIDI support.
 
 Edit DX7 voice parameters visually, load and save .syx bank files, and communicate with a real DX7 directly from the browser.
