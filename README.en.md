@@ -57,6 +57,7 @@ Click the **MIDI** button in the toolbar to open the MIDI panel. Select Input/Ou
 3. In FMAtelier, select the USB-MIDI interface for Input and Output
 4. Set the channel to match the DX7's setting
 5. The MIDI indicator dot turns green when both ports are connected
+6. To receive all 32 voices from the DX7, press FUNCTION + button 8 on the DX7, then select YES at **MIDI TRANSMIT?**. FMAtelier will automatically receive and display the bank data
 
 ## MIDI Features
 
@@ -80,6 +81,8 @@ When you change voices on the DX7 (with SYS INFO AVAIL = ON), FMAtelier automati
 
 - **Rcv Voice**: Requests a voice dump from the DX7's edit buffer
 - **Rcv Bank**: Requests a full bank dump (32 voices)
+
+**Note:** The original DX7 (1983) does not respond to dump requests. Later models such as the DX7II and TX7 support this feature, but this has not been verified with actual hardware.
 
 The DX7 also sends voice data automatically when voices are changed on the front panel (SYS INFO AVAIL = ON).
 
