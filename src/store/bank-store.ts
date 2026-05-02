@@ -156,6 +156,14 @@ class BankStore {
     return this.opClipboard !== null;
   }
 
+  /** Load a single voice into the current slot (e.g., from MIDI receive) */
+  loadVoice(voice: DX7Voice): void {
+    this.pushUndo();
+    this.state.bank.voices[this.state.selectedVoiceIndex] = voice;
+    this.state = { ...this.state, dirty: true };
+    this.notify();
+  }
+
   /** Initialize current voice to default */
   initVoice(): void {
     this.pushUndo();
