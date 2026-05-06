@@ -253,7 +253,10 @@ export class AlgorithmSelector extends LitElement {
     if (!algo) return html``;
 
     return html`
-      <div class="current ${this._open ? 'open' : ''}" @click=${this._toggle}>
+      <div class="current ${this._open ? 'open' : ''}" role="button" tabindex="0"
+           aria-label="Algorithm ${algo.id}" aria-expanded=${this._open}
+           @click=${this._toggle} @keydown=${this._onCurrentKeyDown}
+      >
         <span class="current-label">ALG ${algo.id}</span>
         <div class="current-diagram">${this._renderCurrent(algo)}</div>
         <span class="arrow">${this._open ? '\u25B2' : '\u25BC'}</span>
@@ -261,9 +264,12 @@ export class AlgorithmSelector extends LitElement {
       ${this._open ? html`
         <div class="overlay" @click=${(e: Event) => { e.stopPropagation(); this._open = false; }}></div>
         <div class="dropdown">
-          <div class="grid">
+          <div class="grid" role="radiogroup" aria-label="Algorithm selection">
             ${ALGORITHMS.map((a, i) => html`
               <div
+                role="radio"
+                aria-checked=${i === this.algorithm}
+                aria-label="Algorithm ${a.id}"
                 class="cell ${i === this.algorithm ? 'selected' : ''}"
                 @click=${(e: Event) => { e.stopPropagation(); this._select(i); }}
               >
@@ -463,6 +469,13 @@ export class AlgorithmSelector extends LitElement {
         ${boxes}
       </svg>
     `;
+  }
+
+  private _onCurrentKeyDown(e: KeyboardEvent) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      this._toggle();
+    }
   }
 
   private _toggle() {

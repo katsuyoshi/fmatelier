@@ -81,6 +81,7 @@ export class DxSlider extends LitElement {
       ${this.label ? html`<label>${this.label}</label>` : ''}
       <input
         type="range"
+        aria-label=${this.label}
         .min=${String(this.min)}
         .max=${String(this.max)}
         .value=${String(this.value)}

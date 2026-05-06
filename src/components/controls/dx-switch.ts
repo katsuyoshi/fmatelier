@@ -71,10 +71,12 @@ export class DxSwitch extends LitElement {
   render() {
     return html`
       ${this.label ? html`<label>${this.label}</label>` : ''}
-      <div class="options">
+      <div class="options" role="radiogroup" aria-label=${this.label}>
         ${this.options.map(
           (opt, i) => html`
             <button
+              role="radio"
+              aria-checked=${i === this.value}
               class=${i === this.value ? 'active' : ''}
               @click=${() => this._select(i)}
             >

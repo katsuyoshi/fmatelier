@@ -15,6 +15,10 @@ export class OperatorStrip extends LitElement {
 
   static styles = css`
     :host {
+      display: block;
+    }
+
+    [role='tablist'] {
       display: flex;
       gap: 4px;
     }
@@ -75,21 +79,43 @@ export class OperatorStrip extends LitElement {
 
   render() {
     return html`
-      ${this.operators.map(
-        (op, i) => html`
-          <div
-            class="op ${i === this.selectedOp ? 'selected' : ''}"
-            @click=${() => this._selectOp(i)}
-          >
-            <span class="op-num">OP${i + 1}</span>
-            <div class="level-bar">
-              <div class="level-fill" style="height: ${(op.outputLevel / 99) * 100}%"></div>
+      <div role="tablist" aria-label="Operators">
+        ${this.operators.map(
+          (op, i) => html`
+            <div
+              role="tab"
+              aria-selected=${i === this.selectedOp}
+              aria-label="OP${i + 1}, level ${op.outputLevel}"
+              tabindex=${i === this.selectedOp ? 0 : -1}
+              class="op ${i === this.selectedOp ? 'selected' : ''}"
+              @click=${() => this._selectOp(i)}
+              @keydown=${(e: KeyboardEvent) => this._onKeyDown(e, i)}
+            >
+              <span class="op-num">OP${i + 1}</span>
+              <div class="level-bar" role="presentation">
+                <div class="level-fill" style="height: ${(op.outputLevel / 99) * 100}%"></div>
+              </div>
+              <span class="level-val">${op.outputLevel}</span>
             </div>
-            <span class="level-val">${op.outputLevel}</span>
-          </div>
-        `,
-      )}
+          `,
+        )}
+      </div>
     `;
+  }
+
+  private _onKeyDown(e: KeyboardEvent, index: number) {
+    let next = index;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      next = (index + 1) % this.operators.length;
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      next = (index - 1 + this.operators.length) % this.operators.length;
+    } else {
+      return;
+    }
+    e.preventDefault();
+    this._selectOp(next);
+    const tabs = this.shadowRoot?.querySelectorAll('[role="tab"]');
+    (tabs?.[next] as HTMLElement)?.focus();
   }
 
   private _selectOp(index: number) {
