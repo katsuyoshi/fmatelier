@@ -62,6 +62,21 @@ export class HelpPanel extends LitElement {
       color: var(--color-text-muted);
       font-size: 0.65rem;
     }
+
+    .sponsor {
+      margin-top: var(--spacing-md);
+      padding-top: var(--spacing-sm);
+      border-top: 1px solid var(--color-border);
+    }
+
+    .sponsor a {
+      color: var(--color-accent);
+      text-decoration: none;
+    }
+
+    .sponsor a:hover {
+      text-decoration: underline;
+    }
   `;
 
   render() {
@@ -96,6 +111,8 @@ export class HelpPanel extends LitElement {
         <h4>自動保存</h4>
         <p>編集内容はブラウザに自動保存され、リロードしても復元されます。</p>
 
+        <p class="sponsor">&#9829; <a href="https://paypal.me/itosoftdesign" target="_blank" rel="noopener">PayPal で応援する</a></p>
+
         <p class="note">FMAtelier — DX7 ボイスエディタ</p>
       `;
     }
@@ -127,6 +144,8 @@ export class HelpPanel extends LitElement {
 
       <h4>Auto-save</h4>
       <p>Your edits are automatically saved in the browser and restored on reload.</p>
+
+      <p class="sponsor">&#9829; <a href="https://paypal.me/itosoftdesign" target="_blank" rel="noopener">Support via PayPal</a></p>
 
       <p class="note">FMAtelier — DX7 Voice Editor</p>
     `;
