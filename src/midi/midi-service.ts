@@ -395,7 +395,11 @@ class MidiService {
             this.currentOutput?.send(generateSingleVoiceSysEx(voice, this.state.channel));
           }, 200);
         }, 500);
-      } catch { /* ignore malformed bulk dump */ }
+      } catch (err) {
+        console.warn('Failed to parse bulk dump:', err);
+        this.state = { ...this.state, lastError: 'Failed to parse received bank data' };
+        this.notify();
+      }
       return;
     }
 
@@ -421,7 +425,11 @@ class MidiService {
         }
         this.suppressParamSend = false;
         this.lastVoiceSnapshot = voiceToVCEDParams(bankStore.getCurrentVoice());
-      } catch { /* ignore malformed single voice */ }
+      } catch (err) {
+        console.warn('Failed to parse single voice:', err);
+        this.state = { ...this.state, lastError: 'Failed to parse received voice data' };
+        this.notify();
+      }
       return;
     }
   };
