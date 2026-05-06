@@ -7,13 +7,16 @@ import type { DX7Voice } from '../../model/types.ts';
 export class VoiceList extends LitElement {
   @state() declare voices: DX7Voice[];
   @state() declare selectedIndex: number;
+  @state() declare compact: boolean;
 
   private _unsub?: () => void;
+  private _mql?: MediaQueryList;
 
   constructor() {
     super();
     this.voices = [];
     this.selectedIndex = 0;
+    this.compact = false;
   }
 
   connectedCallback() {
@@ -25,12 +28,21 @@ export class VoiceList extends LitElement {
     const s = bankStore.getState();
     this.voices = s.bank.voices;
     this.selectedIndex = s.selectedVoiceIndex;
+
+    this._mql = window.matchMedia('(max-width: 700px)');
+    this.compact = this._mql.matches;
+    this._mql.addEventListener('change', this._onMqlChange);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     this._unsub?.();
+    this._mql?.removeEventListener('change', this._onMqlChange);
   }
+
+  private _onMqlChange = (e: MediaQueryListEvent) => {
+    this.compact = e.matches;
+  };
 
   static styles = css`
     :host {
@@ -66,6 +78,10 @@ export class VoiceList extends LitElement {
       background: var(--color-bg-card);
     }
 
+    .voice-card:active {
+      opacity: 0.7;
+    }
+
     .voice-card.selected {
       background: var(--color-bg-card-selected);
       border-color: var(--color-accent);
@@ -87,9 +103,35 @@ export class VoiceList extends LitElement {
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
+    select {
+      width: 100%;
+      padding: 8px;
+      background: var(--color-bg-control);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
   `;
 
   render() {
+    if (this.compact) {
+      return html`
+        <h2>VOICE BANK</h2>
+        <select @change=${this._onSelect}>
+          ${this.voices.map(
+            (voice, i) => html`
+              <option value=${i} ?selected=${i === this.selectedIndex}>
+                ${i + 1}. ${voice.common.name || 'INIT VOICE'}
+              </option>
+            `,
+          )}
+        </select>
+      `;
+    }
+
     return html`
       <h2>VOICE BANK</h2>
       <div class="grid">
@@ -106,5 +148,9 @@ export class VoiceList extends LitElement {
         )}
       </div>
     `;
+  }
+
+  private _onSelect(e: Event) {
+    bankStore.selectVoice(Number((e.target as HTMLSelectElement).value));
   }
 }

@@ -3,6 +3,11 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text);
   line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, select, input {
+  touch-action: manipulation;
 }
 
 dx-app {

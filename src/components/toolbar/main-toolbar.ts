@@ -93,6 +93,17 @@ export class MainToolbar extends LitElement {
       border-color: var(--color-accent);
     }
 
+    button:active {
+      opacity: 0.7;
+    }
+
+    @media (pointer: coarse) {
+      button {
+        padding: 8px 14px;
+        font-size: 0.85rem;
+      }
+    }
+
     input[type='file'] {
       display: none;
     }

@@ -38,7 +38,8 @@ export class DxSwitch extends LitElement {
     }
 
     button {
-      padding: 2px 8px;
+      padding: 4px 10px;
+      min-height: 28px;
       border: 1px solid var(--color-border);
       background: var(--color-bg-control);
       color: var(--color-text-muted);
@@ -52,6 +53,18 @@ export class DxSwitch extends LitElement {
       background: var(--color-accent);
       color: white;
       border-color: var(--color-accent);
+    }
+
+    button:active {
+      opacity: 0.7;
+    }
+
+    @media (pointer: coarse) {
+      button {
+        padding: 6px 12px;
+        min-height: 36px;
+        font-size: 0.8rem;
+      }
     }
   `;
 

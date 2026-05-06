@@ -56,6 +56,17 @@ export class DxSlider extends LitElement {
       cursor: pointer;
     }
 
+    @media (pointer: coarse) {
+      input[type='range'] {
+        height: 8px;
+      }
+
+      input[type='range']::-webkit-slider-thumb {
+        width: 24px;
+        height: 24px;
+      }
+    }
+
     .value {
       min-width: 24px;
       text-align: right;
