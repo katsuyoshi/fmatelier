@@ -13,11 +13,13 @@ import {
 /**
  * Unpack a single voice from 155 unpacked bytes (VCED format).
  * In the unpacked format, each parameter occupies its own byte.
- * Operators are stored OP1 first (opposite of packed format).
+ * Operators are stored OP6 first (same order as VMEM packed format).
+ * Our model uses OP1=index 0 through OP6=index 5.
  */
 export function unpackSingleVoice(data: Uint8Array, offset: number = 0): DX7Voice {
   const b = (i: number) => data[offset + i] ?? 0;
 
+  // Read operators in VCED order (OP6..OP1), then reverse to get OP1=index 0
   const operators: DX7Operator[] = [];
   for (let op = 0; op < 6; op++) {
     const base = op * 21;
@@ -39,6 +41,7 @@ export function unpackSingleVoice(data: Uint8Array, offset: number = 0): DX7Voic
       detune: b(base + 20),
     });
   }
+  operators.reverse();
 
   const cBase = 126; // 6 operators × 21 params
   const common: DX7VoiceCommon = {
@@ -66,12 +69,14 @@ export function unpackSingleVoice(data: Uint8Array, offset: number = 0): DX7Voic
 
 /**
  * Pack a DX7 voice into 155 unpacked bytes (VCED format).
+ * Operators are stored in reverse order: OP6, OP5, OP4, OP3, OP2, OP1
+ * (same order as VMEM packed format).
  */
 export function packSingleVoice(voice: DX7Voice): Uint8Array {
   const out = new Uint8Array(UNPACKED_VOICE_SIZE);
 
   for (let op = 0; op < 6; op++) {
-    const o = voice.operators[op]!;
+    const o = voice.operators[5 - op]!; // OP6 first → OP1 last
     const base = op * 21;
     out[base] = o.egRate[0];
     out[base + 1] = o.egRate[1];

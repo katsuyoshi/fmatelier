@@ -27,10 +27,11 @@ type MidiStateListener = (state: MidiState) => void;
 
 const STORAGE_KEY = 'fmatelier-midi';
 
-/** Convert a DX7Voice to a flat array of 155 VCED parameter values */
+/** Convert a DX7Voice to a flat array of 155 VCED parameter values.
+ *  VCED order: OP6, OP5, OP4, OP3, OP2, OP1, then common + name. */
 function voiceToVCEDParams(voice: DX7Voice): number[] {
   const params: number[] = [];
-  for (let op = 0; op < 6; op++) {
+  for (let op = 5; op >= 0; op--) {
     const o = voice.operators[op]!;
     params.push(
       o.egRate[0], o.egRate[1], o.egRate[2], o.egRate[3],
@@ -80,6 +81,7 @@ class MidiService {
   private currentInput: MIDIInput | null = null;
   private currentOutput: MIDIOutput | null = null;
   private sendMuteUntil = 0;
+  private pendingVoiceSend: ReturnType<typeof setTimeout> | null = null;
   private lastVoiceSnapshot: number[] | null = null;
   private lastVoiceIndex = -1;
   private suppressParamSend = false;
@@ -234,10 +236,22 @@ class MidiService {
       const state = bankStore.getState();
       const voiceIndex = state.selectedVoiceIndex;
 
-      // Voice selection changed — update snapshot without sending
+      // Voice selection changed — send Program Change, then voice after delay.
+      // The 200ms gap between PC and Voice SysEx avoids collision with the
+      // DX7's SYS INFO AVAIL response triggered by Program Change.
       if (voiceIndex !== this.lastVoiceIndex) {
         this.lastVoiceIndex = voiceIndex;
-        this.lastVoiceSnapshot = voiceToVCEDParams(bankStore.getCurrentVoice());
+        const voice = bankStore.getCurrentVoice();
+        this.lastVoiceSnapshot = voiceToVCEDParams(voice);
+        this.sendProgramChange(voiceIndex);
+        const sysex = generateSingleVoiceSysEx(voice, this.state.channel);
+        // Use setTimeout for reliable delay (timestamp scheduling can be unreliable)
+        if (this.pendingVoiceSend) clearTimeout(this.pendingVoiceSend);
+        this.pendingVoiceSend = setTimeout(() => {
+          this.pendingVoiceSend = null;
+          this.currentOutput?.send(sysex);
+        }, 200);
+        this.sendMuteUntil = Date.now() + 800;
         return;
       }
 
@@ -360,11 +374,27 @@ class MidiService {
     if (format === 0x09) {
       try {
         const bank = parseSyxFile(new Uint8Array(data));
+        const prevIdx = bankStore.getState().selectedVoiceIndex;
         this.suppressParamSend = true;
         bankStore.loadBank(bank, 'MIDI Receive');
+        // Restore voice selection from before the bulk receive
+        if (prevIdx > 0) bankStore.selectVoice(prevIdx);
         this.suppressParamSend = false;
-        this.lastVoiceIndex = bankStore.getState().selectedVoiceIndex;
+        const selectedIdx = bankStore.getState().selectedVoiceIndex;
+        this.lastVoiceIndex = selectedIdx;
         this.lastVoiceSnapshot = voiceToVCEDParams(bankStore.getCurrentVoice());
+        this.sendMuteUntil = Date.now() + 2000;
+        // After DX7 transmits a bulk dump, the first PC+Voice send is
+        // sometimes ignored. Send a priming PC+Voice to absorb this,
+        // so the user's first voice selection works reliably.
+        setTimeout(() => {
+          if (!this.currentOutput) return;
+          const voice = bankStore.getCurrentVoice();
+          this.sendProgramChange(selectedIdx);
+          setTimeout(() => {
+            this.currentOutput?.send(generateSingleVoiceSysEx(voice, this.state.channel));
+          }, 200);
+        }, 500);
       } catch { /* ignore malformed bulk dump */ }
       return;
     }
