@@ -164,6 +164,14 @@ class BankStore {
     this.notify();
   }
 
+  /** Restore state from persistence (e.g. IndexedDB). Does not push undo. */
+  restoreState(saved: BankState): void {
+    this.state = saved;
+    this.undoStack = [];
+    this.redoStack = [];
+    this.notify();
+  }
+
   /** Initialize current voice to default */
   initVoice(): void {
     this.pushUndo();
