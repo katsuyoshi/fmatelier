@@ -4,6 +4,7 @@ import { bankStore, type BankState } from '../../store/bank-store.ts';
 import { parseSyxFile, generateSyxFile } from '../../sysex/bulk-dump.ts';
 import { midiService, type MidiState } from '../../midi/midi-service.ts';
 import './midi-panel.ts';
+import './help-panel.ts';
 
 @customElement('dx-toolbar')
 export class MainToolbar extends LitElement {
@@ -12,6 +13,7 @@ export class MainToolbar extends LitElement {
   @state() declare midiConnected: boolean;
   @state() declare midiAvailable: boolean;
   @state() declare midiPanelOpen: boolean;
+  @state() declare helpPanelOpen: boolean;
 
   private _unsub?: () => void;
   private _midiUnsub?: () => void;
@@ -23,6 +25,7 @@ export class MainToolbar extends LitElement {
     this.midiConnected = false;
     this.midiAvailable = false;
     this.midiPanelOpen = false;
+    this.helpPanelOpen = false;
   }
 
   connectedCallback() {
@@ -131,12 +134,17 @@ export class MainToolbar extends LitElement {
       box-shadow: 0 0 4px #4caf50;
     }
 
-    .midi-dropdown {
+    .midi-dropdown,
+    .help-dropdown {
       position: absolute;
       top: calc(100% + 4px);
       right: 0;
       z-index: 100;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    .help-wrapper {
+      position: relative;
     }
   `;
 
@@ -159,6 +167,10 @@ export class MainToolbar extends LitElement {
           </button>
           ${this.midiPanelOpen ? html`<dx-midi-panel class="midi-dropdown"></dx-midi-panel>` : ''}
         </div>
+        <div class="help-wrapper">
+          <button @click=${this._toggleHelp}>?</button>
+          ${this.helpPanelOpen ? html`<dx-help-panel class="help-dropdown"></dx-help-panel>` : ''}
+        </div>
       </div>
       <input type="file" accept=".syx" id="file-input" @change=${this._onFileSelected} />
     `;
@@ -166,13 +178,24 @@ export class MainToolbar extends LitElement {
 
   private _toggleMidi() {
     this.midiPanelOpen = !this.midiPanelOpen;
+    if (this.midiPanelOpen) this.helpPanelOpen = false;
+  }
+
+  private _toggleHelp() {
+    this.helpPanelOpen = !this.helpPanelOpen;
+    if (this.helpPanelOpen) this.midiPanelOpen = false;
   }
 
   private _onDocClick = (e: MouseEvent) => {
-    if (!this.midiPanelOpen) return;
-    const wrapper = this.shadowRoot?.querySelector('.midi-wrapper');
-    if (wrapper && !e.composedPath().includes(wrapper)) {
+    if (!this.midiPanelOpen && !this.helpPanelOpen) return;
+    const path = e.composedPath();
+    const midiWrapper = this.shadowRoot?.querySelector('.midi-wrapper');
+    if (this.midiPanelOpen && midiWrapper && !path.includes(midiWrapper)) {
       this.midiPanelOpen = false;
+    }
+    const helpWrapper = this.shadowRoot?.querySelector('.help-wrapper');
+    if (this.helpPanelOpen && helpWrapper && !path.includes(helpWrapper)) {
+      this.helpPanelOpen = false;
     }
   };
 
