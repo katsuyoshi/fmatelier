@@ -112,6 +112,8 @@ export class MidiPanel extends LitElement {
       return html`
         <h3>MIDI</h3>
         <p class="error">${this.midiState.lastError ?? 'Web MIDI not available'}</p>
+        <p class="hint">MIDI requires Chrome or Edge with SysEx permission.
+          File editing (Open / Save .syx) works in any browser.</p>
       `;
     }
 
