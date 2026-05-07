@@ -2,7 +2,7 @@ const CACHE_NAME = 'fmatelier-v1';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.add('/'))
+    caches.open(CACHE_NAME).then((cache) => cache.add('/fmatelier/'))
   );
   self.skipWaiting();
 });
