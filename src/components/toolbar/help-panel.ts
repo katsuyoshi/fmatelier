@@ -69,12 +69,17 @@ export class HelpPanel extends LitElement {
       border-top: 1px solid var(--color-border);
     }
 
-    .sponsor a {
+    .warn {
+      color: var(--color-text-muted);
+      font-size: 0.7rem;
+    }
+
+    .warn a, .sponsor a {
       color: var(--color-accent);
       text-decoration: none;
     }
 
-    .sponsor a:hover {
+    .warn a:hover, .sponsor a:hover {
       text-decoration: underline;
     }
   `;
@@ -98,6 +103,9 @@ export class HelpPanel extends LitElement {
         <p><b>MIDI</b> ボタンから DX7 などのシンセに接続します。
           Chrome または Edge が必要です。入出力ポートと MIDI チャンネルを選択し、
           <b>Send Voice</b> や <b>Send Bank</b> でパッチを送信します。</p>
+        <p class="warn">MIDI インターフェースによってはバルク送信に失敗する場合があります。
+          Arduino を使った USB MIDI インターフェースで安定動作を確認しています。
+          詳しくは <a href="https://github.com/katsuyoshi/fmatelier/tree/main/arduino" target="_blank" rel="noopener">Arduino MIDI Interface</a> を参照してください。</p>
 
         <h4>キーボードショートカット</h4>
         <table>
@@ -132,6 +140,9 @@ export class HelpPanel extends LitElement {
       <p>Click <b>MIDI</b> to connect to a DX7 or other synth.
         Requires Chrome or Edge. Select input/output ports and MIDI channel,
         then use <b>Send Voice</b> or <b>Send Bank</b> to transfer patches.</p>
+      <p class="warn">Some MIDI interfaces may fail to transmit bulk SysEx data reliably.
+        An Arduino-based USB MIDI interface is confirmed to work.
+        See <a href="https://github.com/katsuyoshi/fmatelier/tree/main/arduino" target="_blank" rel="noopener">Arduino MIDI Interface</a> for details.</p>
 
       <h4>Keyboard Shortcuts</h4>
       <table>
