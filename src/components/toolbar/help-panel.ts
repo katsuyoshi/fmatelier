@@ -94,6 +94,8 @@ export class HelpPanel extends LitElement {
         <h4>はじめに</h4>
         <p><b>Open</b> ボタンまたはウィンドウへのドラッグ＆ドロップで .syx バンクファイルを開きます。
           右パネルでパラメータを編集し、<b>Save</b> ボタンで保存します。</p>
+        <p>MIDI 接続中は DX7 から 32 ボイスのバルクダンプを受信して読み込むこともできます。
+          DX7 本体で MIDI CH を設定し、FUNCTION → ボタン 8 → MIDI TRANSMIT? で YES を選択するとバルクダンプが送信されます。</p>
 
         <h4>編集</h4>
         <p>左サイドバーからボイス（1〜32）を選択します。オペレーター（OP1〜OP6）を選んで
@@ -131,6 +133,8 @@ export class HelpPanel extends LitElement {
       <h4>Getting Started</h4>
       <p>Open a .syx bank file using the <b>Open</b> button or drag &amp; drop onto the window.
         Edit parameters in the right panel. Save with the <b>Save</b> button.</p>
+      <p>With a MIDI connection, you can also receive a 32-voice bulk dump from a DX7.
+        Set the MIDI CH on the DX7, then go to FUNCTION → Button 8 → MIDI TRANSMIT? and select YES to send the bulk dump.</p>
 
       <h4>Editing</h4>
       <p>Select a voice (1-32) from the left sidebar. Choose an operator (OP1-OP6)
