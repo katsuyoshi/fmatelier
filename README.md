@@ -5,6 +5,8 @@
 YAMAHA DX7 シンセサイザーの音色をブラウザ上で編集する Web アプリケーションです。
 .syx ファイルの読み書きに加え、Web MIDI API を使って DX7 実機と直接通信できます。
 
+**https://katsuyoshi.github.io/fmatelier/** で公開しています。
+
 Lit + Vite + TypeScript で構築しています。追加の実行時依存はありません。
 
 ## 機能

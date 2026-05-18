@@ -6,6 +6,8 @@ A browser-based voice editor for the YAMAHA DX7 synthesizer with Web MIDI suppor
 
 Edit DX7 voice parameters visually, load and save .syx bank files, and communicate with a real DX7 directly from the browser.
 
+**Live at https://katsuyoshi.github.io/fmatelier/**
+
 Built with Lit, Vite, and TypeScript. No additional runtime dependencies.
 
 ## Features

@@ -2,7 +2,7 @@
 
 Firmware for using an Arduino Uno R4 as a USB MIDI interface to reliably send patches from FMAtelier to a DX7 or other MIDI device.
 
-Many commercial USB-MIDI interfaces experience data loss or timeouts when transmitting large SysEx bulk dumps (4KB+). This firmware is designed to reliably transfer DX7 32-voice bulk dumps (4104 bytes).
+Some USB-MIDI interfaces experience data loss or timeouts when transmitting large SysEx bulk dumps (4KB+). This firmware is designed to reliably transfer DX7 32-voice bulk dumps (4104 bytes).
 
 ## Requirements
 
